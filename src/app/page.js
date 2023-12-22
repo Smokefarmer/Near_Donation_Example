@@ -142,7 +142,7 @@ export default function DonationCollector() {
     <div className="p-4 p-sm-5">
       <div className="row d-flex justify-content-center">
         <div className="col-sm-6 pe-5 pe-sm-5 "  style={{ border: '2px solid var(--bs-code-color)', borderRadius: '8px'}}>
-          <h2 style={{ padding: '2px' }}> Latest Donations </h2>
+          <h2 style={{ padding: '2px', color: 'white'}}> Latest Donations </h2>
           <table className="table table-striped custom-table" style={{ width: '100%' }}>
           <colgroup>
             <col style={{ width: '50%' }} />
@@ -172,7 +172,7 @@ export default function DonationCollector() {
         <div className="col-sm-4">
           <div  className={styles.donationbox}>
             <div className={styles.donationboxhead}>
-              <h4 className="text-center"> Donate to <br></br><span data-behavior="beneficiary">{beneficiary}</span></h4>
+              <h4 style={{ color: "white" }} className="text-center"> Donate to <br></br><span style={{ color: "white" }} data-behavior="beneficiary">{beneficiary}</span></h4>
             </div>
 
               <div className={styles.donationboxbody}>
