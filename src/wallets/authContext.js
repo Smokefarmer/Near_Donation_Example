@@ -174,7 +174,9 @@ export const AuthProvider = ({ children }) => {
       const near = await connect(connectionConfig);
 
       try {
+        console.log("Create Account")
         const account = await near.createAccount(ID, keyPair.publicKey);
+        console.log("Account Created")
         const accountBalance = await account.getAccountBalance();
         const availableBalance = utils.format.formatNearAmount(accountBalance.available);
         return availableBalance.toString()

@@ -14,7 +14,7 @@ export default function DonationCollector() {
 
   const [accountID, setAccountID] = useState('');
   const [balance, setBalance] = useState('');
-  const [nearPrice, setNearPrice] = useState(0);
+  const [nearPrice, setNearPrice] = useState(3);
   const [loggedIn, setLoggedIn] = useState(false);
   const [showSpinner, setShowSpinner] = useState(false);
   const [beneficiary, setBeneficiary] = useState(["loading..."]);
@@ -93,48 +93,52 @@ export default function DonationCollector() {
       fetchContractInfo(CONTRACT,"get_beneficiary").then(
         beneficiary => setBeneficiary(beneficiary)
       );
-      const nearPriceInUSD = getNearPriceInUSD();
-      setNearPrice(nearPriceInUSD)
-      console.log(nearPriceInUSD)
+      getNearPriceInUSD().then(nearPriceInUSD => {
+        if (nearPriceInUSD) {
+          setNearPrice(nearPriceInUSD);
+          console.log(nearPriceInUSD);
+        }
+      });
+  
     } catch (error) {
       console.error(error);
     }
-    
   }, []);
 
   async function getNearPriceInUSD() {
     try {
       const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=near&vs_currencies=usd');
       const data = await response.json();
-      const nearPrice = parseFloat(data.near.usd); // Stellen Sie sicher, dass es eine Zahl ist
-
+      const nearPrice = parseFloat(data.near.usd); // Ensure it is a number
+  
       if (!isNaN(nearPrice) && nearPrice > 0) {
-        console.log(nearPrice)
-        return nearPrice; // Der Preis von 1 NEAR in USD
+        return nearPrice; // The price of 1 NEAR in USD
       } else {
         throw new Error('Invalid NEAR price received');
       }
     } catch (error) {
-      console.error("Fehler beim Abrufen des NEAR-Preises:", error);
-      // Sie könnten einen Fallback-Wert zurückgeben oder den Fehler weiter oben in der Komponente behandeln
+      console.error("Error fetching NEAR price:", error);
+      // You could return a fallback value or handle the error higher up in the component
       return null;
     }
   }
 
   const submitDonation = async () => {
-    setShowSpinner(true);
-    //await callContract(CONTRACT, 'donate', donation);
-    const balance =  await getBalance();
-    const newAlert = `${accountID}: ${balance} Ⓝ`;
-    setlogInAlert(newAlert);
-    try {
-      fetchContractArray(CONTRACT,"getAllDonations").then(
-        donationsArray => setDonations(donationsArray)
-      );
-      } catch (error) {
-        console.error(error);
+    if(user){
+      setShowSpinner(true);
+      await callContract(CONTRACT, 'donate', donation);
+      const balance =  await getBalance();
+      const newAlert = `${accountID}: ${balance} Ⓝ`;
+      setlogInAlert(newAlert);
+      try {
+        fetchContractArray(CONTRACT,"getAllDonations").then(
+          donationsArray => setDonations(donationsArray)
+        );
+        } catch (error) {
+          console.error(error);
+      }
+      setShowSpinner(false);
     }
-    setShowSpinner(false);
   };
 
   return (
