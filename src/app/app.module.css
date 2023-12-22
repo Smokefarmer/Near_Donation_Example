@@ -1,0 +1,127 @@
+
+.nav {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center; /* Zentriert die Elemente vertikal */
+  padding: 0 1rem; /* Fügt Padding auf beiden Seiten hinzu */
+
+  color: white; /* Weiße Textfarbe */
+}
+.buttonContainer {
+  display: flex;
+  gap: 2rem; /* Fügt Abstand zwischen den Buttons hinzu */
+}
+
+.near {
+  margin-right: 5px;
+}
+
+.nav button {
+  background-color: var(--bs-code-color); /* Button Hintergrundfarbe */
+  border: none;
+  color: white;
+  padding: 10px 20px;
+
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  margin: 20px 2px;
+  transition-duration: 0.4s;
+  cursor: pointer;
+  border-radius: 12px; /* Abgerundete Ecken */
+}
+
+.nav button:hover {
+  background-color: white;
+  color: black;
+}
+
+.maincontainer {
+
+  margin-left: auto;
+  margin-right: auto;
+  padding: 4px;
+  margin: 10px;
+
+}
+
+/* Example media query for small screens */
+@media (min-width: 576px) {
+  .maincontainer {
+    padding: 5px;
+  }
+}
+
+.col-sm-8 {
+  padding-right: 2px;
+}
+
+/* Example media query for small screens */
+@media (min-width: 576px) {
+  .col-sm-8 {
+    padding-right: 5px;
+  }
+}
+
+
+
+.donationbox {
+  border: 2px solid var(--bs-code-color);
+  border-radius: 8px; /* Abgerundete Ecken */
+  box-shadow: 0 4px 6px grey; /* Schatten */
+}
+
+.donationboxhead {
+  padding: 3px;
+  border-radius: 4px 4px 0px 0px; /* Abgerundete Ecken */
+  background-color: var(--bs-code-color);
+}
+
+.donationboxbody {
+  padding: 20px;
+  background-color: rgba(0, 0, 0, 0.5);
+  border-radius: 0px 0px 8px 8px; /* Abgerundete Ecken */
+}
+
+.button {
+  transition: background-color 0.3s ease; /* Übergangseffekt */
+}
+
+.fieldset {
+  padding: 15px
+}
+
+.button:hover {
+  background-color: #007bff; /* Hintergrundfarbe beim Hover */
+  color: white; /* Textfarbe */
+}
+
+.notification {
+  background-color: rgba(40, 167, 69, 0.75); /* Grün mit Transparenz */
+  color: white;
+  padding: 15px;
+  border-radius: 4px;
+  margin-top: 20px;
+}
+
+.customtduser {
+  background-color: rgba(0, 0, 0, 0.5); /* Schwarz mit 50% Transparenz */
+  color: white; /* Weißer Text */
+  font-size: 1.1em; /* Größerer Text, 1.1em ist nur ein Beispiel */
+  border-radius: 8px 0px 0px 8px; /* Abgerundete Ecken */
+  padding: 10px; /* Etwas Padding für bessere Optik */
+  border: none;
+  /* Stellen Sie sicher, dass der umgebende td oder table keine Hintergrundfarbe hat, die dies überschreiben könnte */
+}
+
+.customtdamount {
+  background-color: rgba(0, 0, 0, 0.5); /* Schwarz mit 50% Transparenz */
+  color: white; /* Weißer Text */
+  font-size: 1.1em; /* Größerer Text, 1.1em ist nur ein Beispiel */
+  border-radius: 0px 8px 8px 0px; /* Abgerundete Ecken */
+  border: none;
+  padding: 10px; /* Etwas Padding für bessere Optik */
+  /* Stellen Sie sicher, dass der umgebende td oder table keine Hintergrundfarbe hat, die dies überschreiben könnte */
+}
+
