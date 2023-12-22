@@ -61,6 +61,7 @@ export default function DonationCollector() {
     setLoggedIn(!!user);
     const fetchBalance = async () => {
       if (user) {
+        setShowSpinner(true);
         try {
           setlogInAlert('loading...');
           const balance =  await getBalance();
@@ -72,6 +73,7 @@ export default function DonationCollector() {
         } catch (error) {
           console.error("Error fetching balance:", error);
         }
+        setShowSpinner(false);
       } else {
         setlogInAlert("Please sign in with your NEAR wallet to make a donation.");
       }
