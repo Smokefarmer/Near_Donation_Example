@@ -12,8 +12,7 @@ const CONTRACT = HelloNearContract[NetworkId];
 
 export default function DonationCollector() {
 
-  const [accountID, setAccountID] = useState('');
-  const [balance, setBalance] = useState('');
+  const [balance, setBalance] = useState(0);
   const [nearPrice, setNearPrice] = useState(3);
   const [loggedIn, setLoggedIn] = useState(false);
   const [showSpinner, setShowSpinner] = useState(false);
@@ -26,7 +25,7 @@ export default function DonationCollector() {
     { user: '', amount: '' },
     // Ⓝ nicht vergessen beim setzten
   ]);
-  const { user, callContract, getBalance, getAccountID} = useAuth();
+  const { user, callContract, getBalance, getWalletAddress} = useAuth();
 
   const fetchContractInfo = async (contractId, method, args = {}) => {{
     const provider = new providers.JsonRpcProvider({ url: 'https://rpc.testnet.near.org' });
@@ -65,10 +64,9 @@ export default function DonationCollector() {
         try {
           setlogInAlert('loading...');
           const balance =  await getBalance();
-          const accountID = await getAccountID();
-          const newAlert = `${accountID}: ${balance} Ⓝ`;
+          const walletaddress = await getWalletAddress()
+          const newAlert = `${walletaddress}: ${balance} Ⓝ`;
           setlogInAlert(newAlert);
-          setAccountID(accountID)
           setBalance(balance)
         } catch (error) {
           console.error("Error fetching balance:", error);
@@ -95,17 +93,19 @@ export default function DonationCollector() {
       fetchContractInfo(CONTRACT,"get_beneficiary").then(
         beneficiary => setBeneficiary(beneficiary)
       );
+      /*
       getNearPriceInUSD().then(nearPriceInUSD => {
         if (nearPriceInUSD) {
           setNearPrice(nearPriceInUSD);
           console.log(nearPriceInUSD);
         }
       });
+      */
   
     } catch (error) {
       console.error(error);
     }
-  }, []);
+  }, [beneficiary]);
 
   async function getNearPriceInUSD() {
     try {

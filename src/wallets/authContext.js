@@ -1,20 +1,28 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import {WEB3AUTH_NETWORK, WALLET_ADAPTERS  } from "@web3auth/base"
 import { Web3Auth } from "@web3auth/modal";
+import { OpenloginAdapter } from "@web3auth/openlogin-adapter";
 import { connect, KeyPair, keyStores, utils } from "near-api-js";
 
 const AuthContext = createContext(null);
 
 export const useAuth = () => useContext(AuthContext);
 
+const chainConfig = {
+  chainNamespace: "other",
+  chainId: "0x4e454153",
+  rpcTarget: "https://testnet.aurora.dev",
+  displayName: "Near",
+  blockExplorer: "https://explorer.testnet.aurora.dev",
+  ticker: "NEAR",
+  tickerName: "NEAR",
+};
+
 export const AuthProvider = ({ children }) => {
     const [web3auth, setWeb3auth] = useState(null);
     const [provider, setProvider] = useState(null);
+    const [account, setAccount] = useState(null);
     const [user, setUser] = useState(null);
-    const [accountId, setAccountId] = useState(null);
-    const [keyStore, setKeyStore] = useState(null);
-
-    //const [keyPair, setKeyPair] = useState(null);
   
     useEffect(() => {
       const init = async () => {
@@ -22,15 +30,7 @@ export const AuthProvider = ({ children }) => {
         const web3auth = new Web3Auth({
           clientId: "BD20qYbO4GTKBNz5-4WVWLcPpTbQ_E6Hj0CHM_jTRzxwG0KkV-orb1HNUdFo7LZGlmnfLxm1nefjxNXy35nSUpI",
           web3AuthNetwork: "sapphire_devnet",
-          chainConfig: {
-            chainId: "testnet",
-            chainNamespace: "other",
-            rpcTarget: "https://rpc.testnet.near.org",
-            displayName: "Near",
-            blockExplorer: "https://explorer.testnet.near.org",
-            ticker: "NEAR",
-            tickerName: "NEAR",
-          },
+          chainConfig,
           uiConfig: {
             appName: "Smokefarmers Guest List",
             appUrl: "https://web3auth.io",
@@ -42,7 +42,20 @@ export const AuthProvider = ({ children }) => {
             },
           },      
         });
+
+        const openloginAdapter = new OpenloginAdapter({
+          adapterSettings: {
+            uxMode: "popup",
+          },
+        });
+
+        web3auth.configureAdapter(openloginAdapter);
+
+        await web3auth.initModal();
+
         setWeb3auth(web3auth);
+
+        /*        
         await web3auth.initModal({
           modalConfig: {
             [WALLET_ADAPTERS.OPENLOGIN]: {
@@ -93,11 +106,8 @@ export const AuthProvider = ({ children }) => {
               },
             },
           },
-        });
-        if (web3auth.provider) {
-          setProvider(web3auth.provider);
-        };
-  
+        });        
+        */
         } catch (error) {
           console.error(error);
         }
@@ -111,27 +121,21 @@ export const AuthProvider = ({ children }) => {
         console.log("web3auth not initialized yet");
         return;
       }
+
       const web3authProvider = await web3auth.connect();
       setProvider(web3authProvider);
-      getUserInfo()
-    };
-  
-    const getUserInfo = async () => {
-      if (!web3auth) {
-        console.log("web3auth not initialized yet");
-        return;
-      }
+      
       const user = await web3auth.getUserInfo();
       setUser(user)
-      const web3authProvider = await web3auth.connect();
-      setProvider(web3authProvider);
     };
+  
+    const getAccount = async () => {
 
-    const getKeys = async () => {
       if (!provider) {
         console.error("Provider is not available");
         return;
       }
+
       try{
         const keyData  = await provider.request({ method: "private_key" });
       
@@ -148,57 +152,73 @@ export const AuthProvider = ({ children }) => {
 
         // Convert the base58 private key to KeyPair
         const keyPair = KeyPair.fromString(bs58encode);
-                
-        return keyPair;
+        
+        const publicAddress = keyPair?.getPublicKey().toString();
+        const accountID = utils.serialize.base_decode(publicAddress.split(":")[1]).toString("hex");
+
+        const newKeyStore = new keyStores.InMemoryKeyStore();
+        await newKeyStore.setKey("testnet", accountID, keyPair);
+        const connectionConfig = {
+          networkId: "testnet",
+          keyStore: newKeyStore,
+          nodeUrl: "https://rpc.testnet.near.org",
+          walletUrl: "https://wallet.testnet.near.org",
+          helperUrl: "https://helper.testnet.near.org",
+          explorerUrl: "https://explorer.testnet.near.org",
+        };
+  
+        const near = await connect(connectionConfig);
+        try {
+          console.log("Account abfrage");
+          const account = await near.account(accountID);
+          return account;
+      } catch (error) {
+          console.log("Konto nicht gefunden, Fehler:", error);
+      
+          try {
+              const account = await near.createAccount(accountID, keyPair.publicKey);
+              setAccount(account);
+              console.log("Konto erstellt");
+              return account;
+          } catch (createAccountError) {
+              console.error("Konto konnte nicht erstellt werden:", createAccountError);
+          }
+      }
+  
       } catch (error) {
         console.error(error);
       }
-      
+
     };
   
     const getBalance = async () => {
-      
-      const ID = generateAccountId(user.email)
-      setAccountId(ID)
-      const keyPair = await getKeys();
-      const newKeyStore = new keyStores.InMemoryKeyStore();
-      await newKeyStore.setKey("testnet", ID, keyPair);
-      const connectionConfig = {
-        networkId: "testnet",
-        keyStore: newKeyStore,
-        nodeUrl: "https://rpc.testnet.near.org",
-        walletUrl: "https://wallet.testnet.near.org",
-        helperUrl: "https://helper.testnet.near.org",
-        explorerUrl: "https://explorer.testnet.near.org",
-      };
-      const near = await connect(connectionConfig);
-
-      try {
-        console.log("Create Account")
-        const account = await near.createAccount(ID, keyPair.publicKey);
-        console.log("Account Created")
-        const accountBalance = await account.getAccountBalance();
+      const balance = getAccount()
+      .then(account => {
+        const accountBalance = account.getAccountBalance();
         const availableBalance = utils.format.formatNearAmount(accountBalance.available);
         return availableBalance.toString()
-      } catch (error) {
-        console.log(error)
-      }
-      
+      })
+      .catch(error => {
+          console.error("Fehler beim Abrufen des Kontos:", error);
+      });
+      return balance 
     };
-    const getAccountID = async () => {
-      if(accountId != null){
-        return accountId;
-      }else {
-        const ID = generateAccountId(user.email)
-        return ID
-      }
-    }
+
+    const getWalletAddress = async () => {
+      const walletAddress = getAccount()
+      .then(account => {
+        return account.accountId
+      })
+      .catch(error => {
+          console.error("Fehler beim Abrufen des Kontos:", error);
+      });
+      return walletAddress 
+    };
 
     const callContract = async (contractId, method, amount, gas = '30000000000000') => {
 
-      const keyPair = await getKeys();
       const newKeyStore = new keyStores.InMemoryKeyStore();
-      await newKeyStore.setKey("testnet", accountId, keyPair);
+      await newKeyStore.setKey("testnet", this.accountId, this.keyPair);
       const connectionConfig = {
         networkId: "testnet",
         keyStore: newKeyStore,
@@ -237,29 +257,8 @@ export const AuthProvider = ({ children }) => {
       setUser(null);
     };
 
-    function generateAccountId(email) {
-      // Split the email at the '@' character and take the first part
-      let userId = email.split('@')[0];
-  
-      // Keep only alphanumeric characters
-      userId = userId.replace(/[^a-zA-Z0-9]/g, '');
-  
-      // If the userId is empty, hash the email
-      if (userId.length === 0) {
-          // Create a hash from the email
-          let hash = crypto.createHash('sha256');
-          hash.update(email);
-          // Use the first 10 characters of the hexdigest
-          userId = hash.digest('hex').substring(0, 10);
-      }
-  
-      const timestamp = new Date().getTime();
-      // Append the testnet domain
-      return userId + timestamp + '.testnet';
-  }
-
   return (
-    <AuthContext.Provider value={{ user, login, logout, callContract, getBalance, getAccountID}}>
+    <AuthContext.Provider value={{ login, logout, callContract, getBalance, user, getWalletAddress}}>
       {children}
     </AuthContext.Provider>
   );
