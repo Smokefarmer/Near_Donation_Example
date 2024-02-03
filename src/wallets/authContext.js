@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import {WEB3AUTH_NETWORK, WALLET_ADAPTERS  } from "@web3auth/base"
+import {WALLET_ADAPTERS  } from "@web3auth/base"
 import { Web3Auth } from "@web3auth/modal";
 import { OpenloginAdapter } from "@web3auth/openlogin-adapter";
 import { connect, KeyPair, keyStores, utils } from "near-api-js";
@@ -36,26 +36,14 @@ export const AuthProvider = ({ children }) => {
             appUrl: "https://web3auth.io",
             defaultLanguage: "en", 
             mode: "dark",
-            primaryButton: "socialLogin",
+            primaryButton: "externalLogin",
             theme: {
               primary: "#d63384",
             },
           },      
         });
 
-        const openloginAdapter = new OpenloginAdapter({
-          adapterSettings: {
-            uxMode: "popup",
-          },
-        });
-
-        web3auth.configureAdapter(openloginAdapter);
-
-        await web3auth.initModal();
-
-        setWeb3auth(web3auth);
-
-        /*        
+               
         await web3auth.initModal({
           modalConfig: {
             [WALLET_ADAPTERS.OPENLOGIN]: {
@@ -94,20 +82,13 @@ export const AuthProvider = ({ children }) => {
                   name: "sms_passwordless",
                   showOnModal: false,
                 },
-                [WALLET_ADAPTERS.WALLET_CONNECT_V2]: {
-                  label: "wallet_connect",
-                  showOnModal: false,
-                },
-                // Disable Metamask
-                [WALLET_ADAPTERS.METAMASK]: {
-                  label: "metamask",
-                  showOnModal: false,
-                },
               },
             },
           },
-        });        
-        */
+        });   
+
+        setWeb3auth(web3auth);
+        
         } catch (error) {
           console.error(error);
         }
